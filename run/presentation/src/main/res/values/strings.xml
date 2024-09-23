@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="runique_title">Runique</string>
+    <string name="analytics">Analytics</string>
+    <string name="logout">Logout</string>
+    <string name="track_your_run">Track your run</string>
+</resources>
