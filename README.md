@@ -20,4 +20,9 @@ By the guidance of Philipp Lackner [Android Essentials Bundle course](https://pl
 
 ### Images
 
+|                          |                          |
+|--------------------------|--------------------------|
+| <img src="https://raw.githubusercontent.com/Vectorr22/Runique/master/register.png" alt="Descripción de la imagen" width ="350"/> | <img src="https://raw.githubusercontent.com/Vectorr22/Runique/master/login.png" alt="Descripción de la imagen" width ="350"/> |
+
+
 
