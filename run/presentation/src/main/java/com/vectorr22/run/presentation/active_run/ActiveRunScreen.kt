@@ -36,6 +36,7 @@ import com.plcoding.core.presentation.designsystem.components.RuniqueScaffold
 import com.plcoding.core.presentation.designsystem.components.RuniqueToolBar
 import com.plcoding.run.presentation.R
 import com.vectorr22.run.presentation.active_run.components.RunDataCard
+import com.vectorr22.run.presentation.active_run.maps.TrackerMap
 import com.vectorr22.run.presentation.util.hasLocationPermission
 import com.vectorr22.run.presentation.util.hasNotificationPermission
 import com.vectorr22.run.presentation.util.shouldShowLocationPermissionRationale
@@ -136,6 +137,13 @@ fun ActiveRunScreen(
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(padding)
         ) {
+            TrackerMap(
+                isRunFinished = state.isRunFinished,
+                currentLocation = state.currentLocation,
+                listOfLocations = state.runData.location,
+                onSnapshot = {},
+                modifier = Modifier.fillMaxSize()
+            )
             RunDataCard(
                 runData = state.runData,
                 elapsedTime = state.elapsedTime,
