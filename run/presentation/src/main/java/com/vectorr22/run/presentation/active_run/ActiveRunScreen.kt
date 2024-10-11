@@ -29,6 +29,7 @@ import com.plcoding.core.presentation.designsystem.RunIcon
 import com.plcoding.core.presentation.designsystem.RuniqueTheme
 import com.plcoding.core.presentation.designsystem.StartIcon
 import com.plcoding.core.presentation.designsystem.StopIcon
+import com.plcoding.core.presentation.designsystem.components.RuniqueActionButton
 import com.plcoding.core.presentation.designsystem.components.RuniqueDialog
 import com.plcoding.core.presentation.designsystem.components.RuniqueFloatingActionButton
 import com.plcoding.core.presentation.designsystem.components.RuniqueOutlinedActionButton
@@ -59,33 +60,36 @@ fun ActiveRunScreen(
     onAction: (ActiveRunAction) -> Unit
 ) {
     val context = LocalContext.current
-    val permissionLauncher = rememberLauncherForActivityResult( //Lanza una activity para solicitar permisos
-        contract = ActivityResultContracts.RequestMultiplePermissions() //El contrato es que va a lanzar, por asi decirlo, en este caso, multiples permisos.
-    ) { perms ->
-        val hasCourseLocationPermission = perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true //Evalua si ya hay permisos y los almacena
-        val hasFineLocationPermission = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true
-        val hasPostNotificationPermission = if (Build.VERSION.SDK_INT >= 33) {
-            perms[Manifest.permission.POST_NOTIFICATIONS] == true
-        } else true
+    val permissionLauncher =
+        rememberLauncherForActivityResult( //Lanza una activity para solicitar permisos
+            contract = ActivityResultContracts.RequestMultiplePermissions() //El contrato es que va a lanzar, por asi decirlo, en este caso, multiples permisos.
+        ) { perms ->
+            val hasCourseLocationPermission =
+                perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true //Evalua si ya hay permisos y los almacena
+            val hasFineLocationPermission = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true
+            val hasPostNotificationPermission = if (Build.VERSION.SDK_INT >= 33) {
+                perms[Manifest.permission.POST_NOTIFICATIONS] == true
+            } else true
 
-        val activity = context as ComponentActivity //para mandar a llamar a metodos de permisos necesitamos el contexto de component activity
-        val showLocationRationale = activity.shouldShowLocationPermissionRationale()
-        val showNotificationRationale = activity.shouldShowNotificationPermissionRationale()
+            val activity =
+                context as ComponentActivity //para mandar a llamar a metodos de permisos necesitamos el contexto de component activity
+            val showLocationRationale = activity.shouldShowLocationPermissionRationale()
+            val showNotificationRationale = activity.shouldShowNotificationPermissionRationale()
 
-        onAction(   //mandamos a llamar o actualizar el viewModel
-            ActiveRunAction.SubmitLocationPermissionInfo(
-                locationPermissionAccepted = hasCourseLocationPermission && hasFineLocationPermission,
-                showLocationRationale = showLocationRationale
+            onAction(   //mandamos a llamar o actualizar el viewModel
+                ActiveRunAction.SubmitLocationPermissionInfo(
+                    locationPermissionAccepted = hasCourseLocationPermission && hasFineLocationPermission,
+                    showLocationRationale = showLocationRationale
+                )
             )
-        )
 
-        onAction(
-            ActiveRunAction.SubmitNotificationPermissionInfo(
-                notificationPermissionAccepted = hasPostNotificationPermission,
-                showNotificationRationale = showNotificationRationale
+            onAction(
+                ActiveRunAction.SubmitNotificationPermissionInfo(
+                    notificationPermissionAccepted = hasPostNotificationPermission,
+                    showNotificationRationale = showNotificationRationale
+                )
             )
-        )
-    }
+        }
     LaunchedEffect(key1 = true) {
         val activity = context as ComponentActivity
         val showLocationRationale = activity.shouldShowLocationPermissionRationale()
@@ -105,7 +109,7 @@ fun ActiveRunScreen(
             )
         )
 
-        if(!showNotificationRationale && !showLocationRationale){
+        if (!showNotificationRationale && !showLocationRationale) {
             permissionLauncher.requestRuniquePermissions(context)
         }
     }
@@ -154,6 +158,37 @@ fun ActiveRunScreen(
 
     }
 
+    if (!state.shouldTrack && state.hasStartedRunning) {
+        RuniqueDialog(
+            title = stringResource(id = R.string.running_is_paused),
+            description = stringResource(id = R.string.resume_or_finish_run),
+            onDismiss = {
+                onAction(ActiveRunAction.OnResumeRun)
+            },
+            primaryButton = {
+                RuniqueActionButton(
+                    text = stringResource(id = R.string.resume),
+                    isLoading = false,
+                    onClick = {
+                        onAction(ActiveRunAction.OnResumeRun)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                )
+            },
+            secondaryButton = {
+                RuniqueOutlinedActionButton(
+                    text = stringResource(id = R.string.finish),
+                    isLoading = state.isSavingRun,
+                    onClick = {
+                        onAction(ActiveRunAction.OnFinishRunClick)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                )
+            }
+        )
+    }
     if (state.showLocationRationale || state.showNotificationRationale) {
         RuniqueDialog(
             title = stringResource(id = R.string.permission_required),
@@ -205,6 +240,7 @@ private fun ActivityResultLauncher<Array<String>>.requestRuniquePermissions(
         !hasLocationPermissions && !hasNotificationPermissions -> {
             launch(locationPermissions + notificationPermissions)
         }
+
         !hasLocationPermissions -> launch(locationPermissions)
         !hasNotificationPermissions -> launch(notificationPermissions)
     }

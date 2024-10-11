@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
+@file:OptIn(ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 
 package com.plcoding.run.domain
 
@@ -51,6 +51,19 @@ class RunningTracker(
 
     init {
         isTracking
+            .onEach { isTracking ->
+                if (!isTracking) {
+                    val newList = buildList {
+                        addAll(runDataFlow.value.location)
+                        add(emptyList<LocationTimeStamp>())
+                    }.toList()
+                    _runDataFlow.update {
+                        it.copy(
+                            location = newList
+                        )
+                    }
+                }
+            }
             .flatMapLatest { isTracking ->
                 if (isTracking) {
                     Timer.timeAndEmit()
