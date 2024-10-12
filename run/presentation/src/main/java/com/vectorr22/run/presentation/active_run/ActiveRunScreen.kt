@@ -38,6 +38,7 @@ import com.plcoding.core.presentation.designsystem.components.RuniqueToolBar
 import com.plcoding.run.presentation.R
 import com.vectorr22.run.presentation.active_run.components.RunDataCard
 import com.vectorr22.run.presentation.active_run.maps.TrackerMap
+import com.vectorr22.run.presentation.active_run.services.ActiveRunService
 import com.vectorr22.run.presentation.util.hasLocationPermission
 import com.vectorr22.run.presentation.util.hasNotificationPermission
 import com.vectorr22.run.presentation.util.shouldShowLocationPermissionRationale
@@ -46,10 +47,12 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ActiveRunScreenRoot(
+    onServiceToggle: (isServiceBoolean: Boolean) -> Unit,
     viewModel: ActiveRunViewModel = koinViewModel()
 ) {
     ActiveRunScreen(
         state = viewModel.state,
+        onServiceToggle = onServiceToggle,
         onAction = viewModel::onAction
     )
 }
@@ -57,6 +60,7 @@ fun ActiveRunScreenRoot(
 @Composable
 fun ActiveRunScreen(
     state: ActiveRunState,
+    onServiceToggle: (isServiceBoolean: Boolean) -> Unit,
     onAction: (ActiveRunAction) -> Unit
 ) {
     val context = LocalContext.current
@@ -111,6 +115,18 @@ fun ActiveRunScreen(
 
         if (!showNotificationRationale && !showLocationRationale) {
             permissionLauncher.requestRuniquePermissions(context)
+        }
+    }
+
+    LaunchedEffect(key1 = state.isRunFinished) {
+        if(state.isRunFinished){
+            onServiceToggle(false)
+        }
+        
+    }
+    LaunchedEffect(key1 = state.shouldTrack) {
+        if (state.shouldTrack && context.hasNotificationPermission() && !ActiveRunService.isServiceActive) {
+            onServiceToggle(true)
         }
     }
     RuniqueScaffold(
@@ -253,7 +269,8 @@ private fun ActiveRunScreenPreview() {
     RuniqueTheme {
         ActiveRunScreen(
             state = ActiveRunState(),
-            onAction = {}
+            onAction = {},
+            onServiceToggle = {}
         )
     }
 }

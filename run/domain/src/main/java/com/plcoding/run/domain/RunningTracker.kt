@@ -9,7 +9,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -31,7 +30,8 @@ class RunningTracker(
     private val _runDataFlow = MutableStateFlow(RunData())
     val runDataFlow = _runDataFlow.asStateFlow()
 
-    private val isTracking = MutableStateFlow(false)
+    private val _isTracking = MutableStateFlow(false)
+    val isTracking = _isTracking.asStateFlow()
 
     private val _elapsedTime = MutableStateFlow(Duration.ZERO)
     val elapsedTime = _elapsedTime.asStateFlow()
@@ -50,7 +50,7 @@ class RunningTracker(
         )
 
     init {
-        isTracking
+        _isTracking
             .onEach { isTracking ->
                 if (!isTracking) {
                     val newList = buildList {
@@ -75,7 +75,7 @@ class RunningTracker(
 
         currentLocation
             .filterNotNull()
-            .combineTransform(isTracking) { location, isTracking ->
+            .combineTransform(_isTracking) { location, isTracking ->
                 if (isTracking) {
                     emit(location)
                 }
@@ -122,7 +122,7 @@ class RunningTracker(
     }
 
     fun setIsTracking(isTracking: Boolean) {
-        this.isTracking.value = isTracking
+        this._isTracking.value = isTracking
     }
 
     fun startObservingLocation() {
