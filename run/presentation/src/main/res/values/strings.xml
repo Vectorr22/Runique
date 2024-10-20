@@ -19,4 +19,11 @@
     <string name="resume_or_finish_run">Do you want to resume or finish the workout?</string>
     <string name="resume">Resume</string>
     <string name="finish">Finish</string>
+    <string name="image_url">Image Url</string>
+    <string name="erro_couldnt_load_image">Couldnt load image</string>
+    <string name="total_running_time">Total running time</string>
+    <string name="avg_speed">Ø Speed</string>
+    <string name="max_speed">Max speed</string>
+    <string name="total_elevation">Total elevation</string>
+    <string name="delete">Delete</string>
 </resources>

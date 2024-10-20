@@ -132,7 +132,6 @@ class ActiveRunViewModel(
                     showNotificationRationale = false
                 )
             }
-
             else -> Unit
         }
     }
