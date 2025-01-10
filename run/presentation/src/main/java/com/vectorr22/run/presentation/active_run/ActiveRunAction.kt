@@ -1,5 +1,7 @@
 package com.vectorr22.run.presentation.active_run
 
+import java.io.File
+
 sealed interface ActiveRunAction {
     data object OnToggleRunClick: ActiveRunAction
     data object OnFinishRunClick: ActiveRunAction
@@ -15,4 +17,5 @@ sealed interface ActiveRunAction {
     ): ActiveRunAction
 
     data object DismissRationaleDialog: ActiveRunAction
+    class OnRunProcessed(val mapPictureBytes: ByteArray): ActiveRunAction
 }

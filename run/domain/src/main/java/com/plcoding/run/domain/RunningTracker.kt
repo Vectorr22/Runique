@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
 
 class RunningTracker(
@@ -33,7 +34,7 @@ class RunningTracker(
     private val _isTracking = MutableStateFlow(false)
     val isTracking = _isTracking.asStateFlow()
 
-    private val _elapsedTime = MutableStateFlow(Duration.ZERO)
+    private val _elapsedTime = MutableStateFlow(ZERO)
     val elapsedTime = _elapsedTime.asStateFlow()
 
     private val isObservingLocation = MutableStateFlow(false)
@@ -106,9 +107,6 @@ class RunningTracker(
                     (currentDuration.inWholeSeconds / distanceKm).roundToInt()
                 }
 
-
-
-
                 _runDataFlow.update {
                     RunData(
                         distanceMeters = distanceMeters,
@@ -132,12 +130,19 @@ class RunningTracker(
     fun stopObservingLocation() {
         isObservingLocation.value = false
     }
+
+    fun finishRun() {
+        stopObservingLocation()
+        setIsTracking(false)
+        _elapsedTime.value = ZERO
+        _runDataFlow.value = RunData()
+    }
 }
 
 private fun <T> List<List<T>>.replaceLast(replacement: List<T>): List<List<T>> {
     if (this.isEmpty()) {
         return listOf(replacement)
-    } else {
-        return this.dropLast(1) + listOf(replacement)
     }
+    return this.dropLast(1) + listOf(replacement)
+
 }

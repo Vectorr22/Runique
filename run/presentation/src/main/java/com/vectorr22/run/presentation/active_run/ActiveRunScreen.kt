@@ -7,7 +7,9 @@ package com.vectorr22.run.presentation.active_run
 
 import android.Manifest
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -25,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.plcoding.core.presentation.designsystem.RunIcon
 import com.plcoding.core.presentation.designsystem.RuniqueTheme
 import com.plcoding.core.presentation.designsystem.StartIcon
 import com.plcoding.core.presentation.designsystem.StopIcon
@@ -35,6 +36,7 @@ import com.plcoding.core.presentation.designsystem.components.RuniqueFloatingAct
 import com.plcoding.core.presentation.designsystem.components.RuniqueOutlinedActionButton
 import com.plcoding.core.presentation.designsystem.components.RuniqueScaffold
 import com.plcoding.core.presentation.designsystem.components.RuniqueToolBar
+import com.plcoding.core.presentation.ui.ObserveAsEvents
 import com.plcoding.run.presentation.R
 import com.vectorr22.run.presentation.active_run.components.RunDataCard
 import com.vectorr22.run.presentation.active_run.maps.TrackerMap
@@ -44,16 +46,45 @@ import com.vectorr22.run.presentation.util.hasNotificationPermission
 import com.vectorr22.run.presentation.util.shouldShowLocationPermissionRationale
 import com.vectorr22.run.presentation.util.shouldShowNotificationPermissionRationale
 import org.koin.androidx.compose.koinViewModel
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun ActiveRunScreenRoot(
     onServiceToggle: (isServiceBoolean: Boolean) -> Unit,
-    viewModel: ActiveRunViewModel = koinViewModel()
+    viewModel: ActiveRunViewModel = koinViewModel(),
+    onFinish: () -> Unit,
+    onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+    ObserveAsEvents(flow = viewModel.events) { event ->
+        when(event){
+            is ActiveRunEvent.Error -> {
+                Toast.makeText(
+                    context,
+                    event.error.asString(context),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            ActiveRunEvent.RunSaved -> onFinish()
+        }
+        
+    }
     ActiveRunScreen(
         state = viewModel.state,
         onServiceToggle = onServiceToggle,
-        onAction = viewModel::onAction
+        onAction = { action ->
+            when(action){
+               ActiveRunAction.OnBackClick -> {
+                   if(!viewModel.state.hasStartedRunning){
+                       onBack()
+                   }
+               }
+                else -> Unit
+            }
+            viewModel.onAction(action)
+        }
     )
 }
 
@@ -161,7 +192,17 @@ fun ActiveRunScreen(
                 isRunFinished = state.isRunFinished,
                 currentLocation = state.currentLocation,
                 listOfLocations = state.runData.location,
-                onSnapshot = {},
+                onSnapshot = { bmp ->
+                    val stream = ByteArrayOutputStream()
+                    stream.use {
+                        bmp.compress(
+                            Bitmap.CompressFormat.JPEG,
+                            80,
+                            it
+                        )
+                    }
+                    onAction(ActiveRunAction.OnRunProcessed(mapPictureBytes = stream.toByteArray()))
+                },
                 modifier = Modifier.fillMaxSize()
             )
             RunDataCard(
@@ -261,6 +302,7 @@ private fun ActivityResultLauncher<Array<String>>.requestRuniquePermissions(
         !hasNotificationPermissions -> launch(notificationPermissions)
     }
 }
+
 
 
 @Preview

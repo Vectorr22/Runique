@@ -37,7 +37,6 @@ class KtorRemoteRunDataSource(
                     append("MAP_PICTURE", mapPicture, headers = Headers.build {
                         append(HttpHeaders.ContentType, "image/jpeg")
                         append(HttpHeaders.ContentDisposition, "filename=mappicture.jpg")
-
                     })
                     append("RUN_DATA", createRunRequestJson, headers = Headers.build {
                         append(HttpHeaders.ContentType, "text/plain")

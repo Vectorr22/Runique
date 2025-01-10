@@ -18,7 +18,7 @@ internal fun Project.configureBuildTypes(
         }
 
         val apiKey = gradleLocalProperties(rootDir).getProperty("API_KEY")
-        when(extensionType) {
+        when (extensionType) {
             ExtensionType.APPLICATION -> {
                 extensions.configure<ApplicationExtension> {
                     buildTypes {
@@ -31,6 +31,7 @@ internal fun Project.configureBuildTypes(
                     }
                 }
             }
+
             ExtensionType.LIBRARY -> {
                 extensions.configure<LibraryExtension> {
                     buildTypes {
@@ -47,9 +48,11 @@ internal fun Project.configureBuildTypes(
     }
 }
 
-private fun BuildType.configureDebugBuildType(apiKey: String) {
+private fun BuildType.configureDebugBuildType(
+    apiKey: String
+) {
     buildConfigField("String", "API_KEY", "\"$apiKey\"")
-    buildConfigField("String", "BASE_URL", "\"https://runique.pl-coding.com:8080\"")
+    buildConfigField("String", "BASE_URL", "\"http://192.168.1.71:8080\"")
 }
 
 private fun BuildType.configureReleaseBuildType(
@@ -57,8 +60,7 @@ private fun BuildType.configureReleaseBuildType(
     apiKey: String
 ) {
     buildConfigField("String", "API_KEY", "\"$apiKey\"")
-    buildConfigField("String", "BASE_URL", "\"https://runique.pl-coding.com:8080\"")
-
+    buildConfigField("String", "BASE_URL", "\"http://192.168.1.71:8080\"")
     isMinifyEnabled = true
     proguardFiles(
         commonExtension.getDefaultProguardFile("proguard-android-optimize.txt"),

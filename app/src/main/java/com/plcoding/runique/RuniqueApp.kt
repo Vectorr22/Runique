@@ -5,6 +5,7 @@ import com.plcoding.auth.data.di.authDataModule
 import com.plcoding.auth.presentation.di.authViewModelModule
 import com.plcoding.core.data.di.coreDataModule
 import com.plcoding.core.database.di.databaseModule
+import com.plcoding.run.network.di.networkModule
 import com.plcoding.runique.di.appModule
 import com.vectorr22.run.di.runPresentationModule
 import com.vectorr22.run.location.di.locationModule
@@ -34,7 +35,8 @@ class RuniqueApp: Application() {
                 coreDataModule,
                 runPresentationModule,
                 locationModule,
-                databaseModule
+                databaseModule,
+                networkModule
             )
         }
     }

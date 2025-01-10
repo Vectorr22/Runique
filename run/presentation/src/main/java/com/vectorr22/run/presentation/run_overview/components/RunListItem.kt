@@ -53,6 +53,7 @@ import com.plcoding.core.presentation.designsystem.RuniqueTheme
 import com.plcoding.run.presentation.R
 import com.vectorr22.run.presentation.run_overview.mappers.toRunUi
 import com.vectorr22.run.presentation.run_overview.module.RunUi
+import timber.log.Timber
 import java.time.LocalTime
 import java.time.ZonedDateTime
 import kotlin.math.max
