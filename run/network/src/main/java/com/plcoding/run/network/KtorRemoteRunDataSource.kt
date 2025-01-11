@@ -21,10 +21,13 @@ import kotlinx.serialization.json.Json
 
 class KtorRemoteRunDataSource(
     private val httpClient: HttpClient
-) : RemoteRunDataSource {
+): RemoteRunDataSource {
+
     override suspend fun getRuns(): Result<List<Run>, DataError.Network> {
-        return httpClient.get<List<RunDto>>(route = "/runs").map { runOfDtos ->
-            runOfDtos.map { it.toRun() }
+        return httpClient.get<List<RunDto>>(
+            route = "/runs",
+        ).map { runDtos ->
+            runDtos.map { it.toRun() }
         }
     }
 
@@ -34,11 +37,11 @@ class KtorRemoteRunDataSource(
             httpClient.submitFormWithBinaryData(
                 url = constructRoute("/run"),
                 formData = formData {
-                    append("MAP_PICTURE", mapPicture, headers = Headers.build {
+                    append("MAP_PICTURE", mapPicture, Headers.build {
                         append(HttpHeaders.ContentType, "image/jpeg")
                         append(HttpHeaders.ContentDisposition, "filename=mappicture.jpg")
                     })
-                    append("RUN_DATA", createRunRequestJson, headers = Headers.build {
+                    append("RUN_DATA", createRunRequestJson, Headers.build {
                         append(HttpHeaders.ContentType, "text/plain")
                         append(HttpHeaders.ContentDisposition, "form-data; name=\"RUN_DATA\"")
                     })
@@ -54,10 +57,10 @@ class KtorRemoteRunDataSource(
 
     override suspend fun deleteRun(id: String): EmptyResult<DataError.Network> {
         return httpClient.delete(
-            "/run", queryParameters = mapOf(
+            route = "/run",
+            queryParameters = mapOf(
                 "id" to id
             )
         )
     }
-
 }

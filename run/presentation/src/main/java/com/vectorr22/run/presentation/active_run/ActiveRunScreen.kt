@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -47,26 +48,22 @@ import com.vectorr22.run.presentation.util.shouldShowLocationPermissionRationale
 import com.vectorr22.run.presentation.util.shouldShowNotificationPermissionRationale
 import org.koin.androidx.compose.koinViewModel
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
 
 @Composable
 fun ActiveRunScreenRoot(
     onServiceToggle: (isServiceBoolean: Boolean) -> Unit,
-    viewModel: ActiveRunViewModel = koinViewModel(),
-    onFinish: () -> Unit,
-    onBack: () -> Unit
+    onFinish:() -> Unit,
+    onBack:() -> Unit,
+    viewModel: ActiveRunViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
     ObserveAsEvents(flow = viewModel.events) { event ->
         when(event){
-            is ActiveRunEvent.Error -> {
-                Toast.makeText(
-                    context,
-                    event.error.asString(context),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+            is ActiveRunEvent.Error -> Toast.makeText(
+                context,
+                event.error.asString(context),
+                Toast.LENGTH_LONG
+            ).show()
             ActiveRunEvent.RunSaved -> onFinish()
         }
         
@@ -74,16 +71,16 @@ fun ActiveRunScreenRoot(
     ActiveRunScreen(
         state = viewModel.state,
         onServiceToggle = onServiceToggle,
-        onAction = { action ->
-            when(action){
-               ActiveRunAction.OnBackClick -> {
-                   if(!viewModel.state.hasStartedRunning){
-                       onBack()
-                   }
-               }
+        onAction = {
+            when(it){
+                is ActiveRunAction.OnBackClick -> {
+                    if(!viewModel.state.hasStartedRunning){
+                        onBack()
+                    }
+                }
                 else -> Unit
             }
-            viewModel.onAction(action)
+            viewModel.onAction(it)
         }
     )
 }
@@ -175,7 +172,7 @@ fun ActiveRunScreen(
                 iconSize = 20.dp,
                 contentDescription =
                 if (state.shouldTrack)
-                    stringResource(id = R.string.start_your_run)
+                    stringResource(id = R.string.start_run)
                 else
                     stringResource(id = R.string.stop_run)
             )
@@ -191,7 +188,7 @@ fun ActiveRunScreen(
             TrackerMap(
                 isRunFinished = state.isRunFinished,
                 currentLocation = state.currentLocation,
-                listOfLocations = state.runData.location,
+                locations = state.runData.locations,
                 onSnapshot = { bmp ->
                     val stream = ByteArrayOutputStream()
                     stream.use {
@@ -201,7 +198,7 @@ fun ActiveRunScreen(
                             it
                         )
                     }
-                    onAction(ActiveRunAction.OnRunProcessed(mapPictureBytes = stream.toByteArray()))
+                    onAction(ActiveRunAction.OnRunProcessed(stream.toByteArray()))
                 },
                 modifier = Modifier.fillMaxSize()
             )
@@ -209,7 +206,9 @@ fun ActiveRunScreen(
                 runData = state.runData,
                 elapsedTime = state.elapsedTime,
                 modifier = Modifier
-                    .padding(12.dp)
+                    .padding(16.dp)
+                    .padding(padding)
+                    .fillMaxWidth()
             )
         }
 
@@ -302,7 +301,6 @@ private fun ActivityResultLauncher<Array<String>>.requestRuniquePermissions(
         !hasNotificationPermissions -> launch(notificationPermissions)
     }
 }
-
 
 
 @Preview

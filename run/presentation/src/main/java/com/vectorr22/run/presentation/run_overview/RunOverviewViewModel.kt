@@ -14,27 +14,33 @@ import kotlinx.coroutines.launch
 class RunOverviewViewModel(
     private val runRepository: RunRepository
 ): ViewModel() {
-    var state by mutableStateOf(RunOverviewState())
+
+    var state by mutableStateOf(RunOverViewState())
         private set
+
     init {
+
         runRepository.getRuns().onEach { runs ->
             val runsUi = runs.map { it.toRunUi() }
             state = state.copy(
                 runs = runsUi
             )
         }.launchIn(viewModelScope)
+
         viewModelScope.launch {
             runRepository.fetchRuns()
         }
-
     }
+
     fun onAction(action: RunOverviewAction){
         when(action){
-            RunOverviewAction.onStartClick -> Unit
             RunOverviewAction.onLogoutClick -> Unit
-            is RunOverviewAction.DeleteRun ->{
+
+            RunOverviewAction.onStartClick -> Unit
+
+            is RunOverviewAction.DeleteRun -> {
                 viewModelScope.launch {
-                    runRepository.deleteRun(action.run.id)
+                    runRepository.deleteRun(action.runUi.id)
                 }
             }
             else -> Unit

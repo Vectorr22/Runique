@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -52,10 +51,11 @@ fun RunOverviewScreenRoot(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RunOverviewScreen(
-    onAction: (RunOverviewAction) -> Unit,
-    state: RunOverviewState
+    state: RunOverViewState,
+    onAction: (RunOverviewAction) -> Unit
 ) {
     val topAppBarState = rememberTopAppBarState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
@@ -75,7 +75,7 @@ private fun RunOverviewScreen(
         topAppBar = {
             RuniqueToolBar(
                 canNavigateBack = false,
-                title = stringResource(id = R.string.runique_title),
+                title = stringResource(id = R.string.runique),
                 startContent = {
                     Icon(
                         imageVector = LogoIcon,
@@ -114,15 +114,15 @@ private fun RunOverviewScreen(
         ) {
             items(state.runs, key = { it.id }) {
                 RunListItem(
-                    runUi = it,
-                    onDeleteClick = {
+                    runUi = it, onDeleteClick = {
                         onAction(RunOverviewAction.DeleteRun(it))
                     },
-                    modifier = Modifier
-                        .animateItemPlacement()
+                    modifier = Modifier.animateItemPlacement()
                 )
             }
+
         }
+
     }
 }
 
@@ -131,8 +131,8 @@ private fun RunOverviewScreen(
 private fun RunOverviewScreenPreview() {
     RuniqueTheme {
         RunOverviewScreen(
-            state = RunOverviewState(),
-            onAction = {}
+            onAction = {},
+            state = RunOverViewState()
         )
     }
 }

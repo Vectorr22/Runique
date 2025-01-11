@@ -9,5 +9,5 @@ sealed interface RunOverviewAction {
 
     data object onAnalyticsClick: RunOverviewAction
 
-    data class DeleteRun(val run: RunUi): RunOverviewAction
+    data class DeleteRun(val runUi: RunUi): RunOverviewAction
 }

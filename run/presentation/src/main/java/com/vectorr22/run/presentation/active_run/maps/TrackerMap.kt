@@ -1,9 +1,8 @@
-@file:OptIn(MapsComposeExperimentalApi::class)
+@file:OptIn(DelicateCoroutinesApi::class, MapsComposeExperimentalApi::class)
 
 package com.vectorr22.run.presentation.active_run.maps
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -27,9 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.google.android.gms.maps.CameraUpdate
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MapStyleOptions
@@ -46,19 +43,19 @@ import com.plcoding.core.domain.location.Location
 import com.plcoding.core.domain.location.LocationTimeStamp
 import com.plcoding.core.presentation.designsystem.RunIcon
 import com.plcoding.run.presentation.R
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @Composable
 fun TrackerMap(
-    modifier: Modifier = Modifier,
     isRunFinished: Boolean,
     currentLocation: Location?,
-    listOfLocations: List<List<LocationTimeStamp>>,
+    locations: List<List<LocationTimeStamp>>,
     onSnapshot: (Bitmap) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val mapStyle = remember {
@@ -72,36 +69,37 @@ fun TrackerMap(
         animationSpec = tween(durationMillis = 500),
         label = ""
     )
-
     val markerPositionLong by animateFloatAsState(
         targetValue = currentLocation?.long?.toFloat() ?: 0f,
         animationSpec = tween(durationMillis = 500),
         label = ""
     )
-
     val markerPosition = remember(markerPositionLat, markerPositionLong) {
         LatLng(markerPositionLat.toDouble(), markerPositionLong.toDouble())
     }
 
     LaunchedEffect(markerPosition, isRunFinished) {
-        if (!isRunFinished) {
+        if(!isRunFinished) {
             markerState.position = markerPosition
         }
     }
+
     LaunchedEffect(currentLocation, isRunFinished) {
-        if (currentLocation != null && !isRunFinished) {
-            val latLng = LatLng(
-                currentLocation.lat,
-                currentLocation.long
-            )
+        if(currentLocation != null && !isRunFinished) {
+            val latLng = LatLng(currentLocation.lat, currentLocation.long)
             cameraPositionState.animate(
                 CameraUpdateFactory.newLatLngZoom(latLng, 17f)
             )
         }
     }
 
-    var triggerScreenshot by remember { mutableStateOf(false) }
-    var createSnapshotJob: Job? = remember { null }
+    var triggerCapture by remember {
+        mutableStateOf(false)
+    }
+    var createSnapshotJob: Job? = remember {
+        null
+    }
+
     GoogleMap(
         cameraPositionState = cameraPositionState,
         properties = MapProperties(
@@ -110,30 +108,31 @@ fun TrackerMap(
         uiSettings = MapUiSettings(
             zoomControlsEnabled = false
         ),
-        modifier = if (isRunFinished) {
+        modifier = if(isRunFinished) {
             modifier
                 .width(300.dp)
                 .aspectRatio(16 / 9f)
                 .alpha(0f)
                 .onSizeChanged {
                     if (it.width >= 300) {
-                        triggerScreenshot = true
+                        triggerCapture = true
                     }
                 }
         } else modifier
     ) {
-        RuniquePolylines(locations = listOfLocations)
-        MapEffect(listOfLocations, isRunFinished, triggerScreenshot, createSnapshotJob) { map ->
-            if (isRunFinished && triggerScreenshot && createSnapshotJob == null) {
-                triggerScreenshot = false
+        RuniquePolylines(locations = locations)
+
+        MapEffect(locations, isRunFinished, triggerCapture, createSnapshotJob) { map ->
+            if(isRunFinished && triggerCapture && createSnapshotJob == null) {
+                triggerCapture = false
+
                 val boundsBuilder = LatLngBounds.builder()
-                listOfLocations.flatten().forEach { location ->
-                    boundsBuilder.include(
-                        LatLng(
+                locations.flatten().forEach { location ->
+                    boundsBuilder
+                        .include(LatLng(
                             location.location.location.lat,
-                            location.location.location.long
-                        )
-                    )
+                            location.location.location.long,
+                        ))
                 }
                 map.moveCamera(
                     CameraUpdateFactory.newLatLngBounds(
@@ -141,26 +140,27 @@ fun TrackerMap(
                         100
                     )
                 )
-                map.setOnCameraIdleListener{
+
+                map.setOnCameraIdleListener {
                     createSnapshotJob?.cancel()
                     createSnapshotJob = GlobalScope.launch {
-                        //The delay is so that the screenshot is taken when the map is well focused
+                        // Make sure the map is sharp and focused before taking
+                        // the screenshot
                         delay(500L)
-                        map.awaitSnapshot()?.let {
-                            onSnapshot(it)
-                        }
+                        map.awaitSnapshot()?.let(onSnapshot)
                     }
                 }
             }
         }
-        if (!isRunFinished && currentLocation != null) {
+
+        if(!isRunFinished && currentLocation != null) {
             MarkerComposable(
                 currentLocation,
                 state = markerState
             ) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(35.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center

@@ -41,7 +41,6 @@ class ActiveRunViewModel(
     private val eventChannel = Channel<ActiveRunEvent>()
     val events = eventChannel.receiveAsFlow()
 
-
     private val shouldTrack = snapshotFlow { state.shouldTrack }
         .stateIn(viewModelScope, SharingStarted.Lazily, state.shouldTrack)
 
@@ -53,8 +52,6 @@ class ActiveRunViewModel(
     ) { shouldTrack, hasPermission ->
         shouldTrack && hasPermission
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
-
-
 
     init {
         hasLocationPermission.onEach { hasPermission ->
@@ -94,7 +91,7 @@ class ActiveRunViewModel(
 
         combine(
             runningTracker.currentLocation,
-            runningTracker.runDataFlow,
+            runningTracker.runData,
             runningTracker.elapsedTime
         ) { currentLocation, runData, elapsedTime ->
             state.copy(
@@ -117,7 +114,6 @@ class ActiveRunViewModel(
                     isSavingRun = true
                 )
             }
-
             ActiveRunAction.OnResumeRun -> {
                 state = state.copy(
                     shouldTrack = true
@@ -149,27 +145,25 @@ class ActiveRunViewModel(
                     showNotificationRationale = action.showNotificationRationale
                 )
             }
-
             is ActiveRunAction.DismissRationaleDialog -> {
                 state = state.copy(
                     showLocationRationale = false,
                     showNotificationRationale = false
                 )
             }
-
             is ActiveRunAction.OnRunProcessed -> {
                 finishRun(action.mapPictureBytes)
             }
-            else -> Unit
         }
     }
 
     private fun finishRun(mapPictureBytes: ByteArray) {
-        val locations = state.runData.location
-        if (locations.isEmpty() || locations.first().size <= 1) {
+        val locations = state.runData.locations
+        if(locations.isEmpty() || locations.first().size <= 1) {
             state = state.copy(isSavingRun = false)
             return
         }
+
         viewModelScope.launch {
             val run = Run(
                 id = null,
@@ -177,34 +171,28 @@ class ActiveRunViewModel(
                 dateTimeUtc = ZonedDateTime.now()
                     .withZoneSameInstant(ZoneId.of("UTC")),
                 distanceInMeters = state.runData.distanceMeters,
-                location = state.currentLocation ?: Location(lat = 0.0, long = 0.0),
+                location = state.currentLocation ?: Location(0.0, 0.0),
                 maxSpeedKmh = LocationDataCalculator.getMaxSpeedKmh(locations),
                 totalElevationMeters = LocationDataCalculator.getTotalElevationMeters(locations),
                 mapPictureUrl = null
             )
-
-            //Aqui se guardara la run en el repo
             runningTracker.finishRun()
-            //uploadToS3(picture)
-            when (val result = runRepository.upsertRun(run,mapPictureBytes)) {
+            // Save run in repository
+            when(val result = runRepository.upsertRun(run, mapPictureBytes)){
                 is Result.Error -> {
                     eventChannel.send(ActiveRunEvent.Error(result.error.asUiText()))
                 }
-
                 is Result.Success -> {
                     eventChannel.send(ActiveRunEvent.RunSaved)
                 }
             }
-            state = state.copy(
-                isSavingRun = false
-            )
+            state = state.copy(isSavingRun = false)
         }
     }
 
-
     override fun onCleared() {
         super.onCleared()
-        if (!ActiveRunService.isServiceActive) {
+        if(!ActiveRunService.isServiceActive){
             runningTracker.stopObservingLocation()
         }
     }
