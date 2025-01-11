@@ -239,7 +239,7 @@ private fun MapImage(
 ) {
     SubcomposeAsyncImage(
         model = imageUrl,
-        contentDescription = stringResource(id = R.string.image_url),
+        contentDescription = stringResource(id = R.string.run_map),
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(16 / 9f)
@@ -266,7 +266,7 @@ private fun MapImage(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = stringResource(id = R.string.erro_couldnt_load_image),
+                    text = stringResource(id = R.string.error_couldnt_load_image),
                     color = MaterialTheme.colorScheme.error
                 )
 

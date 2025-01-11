@@ -6,6 +6,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.plcoding.core.domain.location.Location
+import com.plcoding.core.domain.run.Run
+import com.plcoding.core.domain.run.RunRepository
+import com.plcoding.core.domain.util.Result
+import com.plcoding.core.presentation.ui.asUiText
+import com.plcoding.run.domain.LocationDataCalculator
 import com.plcoding.run.domain.RunningTracker
 import com.vectorr22.run.presentation.active_run.services.ActiveRunService
 import kotlinx.coroutines.channels.Channel
@@ -16,9 +22,13 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class ActiveRunViewModel(
-    private val runningTracker: RunningTracker
+    private val runningTracker: RunningTracker,
+    private val runRepository: RunRepository
 ) : ViewModel() {
     var state by mutableStateOf(
         ActiveRunState(
@@ -81,7 +91,7 @@ class ActiveRunViewModel(
 
         combine(
             runningTracker.currentLocation,
-            runningTracker.runDataFlow,
+            runningTracker.runData,
             runningTracker.elapsedTime
         ) { currentLocation, runData, elapsedTime ->
             state.copy(
@@ -98,7 +108,12 @@ class ActiveRunViewModel(
 
     fun onAction(action: ActiveRunAction) {
         when (action) {
-            ActiveRunAction.OnFinishRunClick -> {}
+            ActiveRunAction.OnFinishRunClick -> {
+                state = state.copy(
+                    isRunFinished = true,
+                    isSavingRun = true
+                )
+            }
             ActiveRunAction.OnResumeRun -> {
                 state = state.copy(
                     shouldTrack = true
@@ -125,14 +140,53 @@ class ActiveRunViewModel(
                 )
             }
 
-            is ActiveRunAction.SubmitNotificationPermissionInfo -> {}
+            is ActiveRunAction.SubmitNotificationPermissionInfo -> {
+                state = state.copy(
+                    showNotificationRationale = action.showNotificationRationale
+                )
+            }
             is ActiveRunAction.DismissRationaleDialog -> {
                 state = state.copy(
                     showLocationRationale = false,
                     showNotificationRationale = false
                 )
             }
-            else -> Unit
+            is ActiveRunAction.OnRunProcessed -> {
+                finishRun(action.mapPictureBytes)
+            }
+        }
+    }
+
+    private fun finishRun(mapPictureBytes: ByteArray) {
+        val locations = state.runData.locations
+        if(locations.isEmpty() || locations.first().size <= 1) {
+            state = state.copy(isSavingRun = false)
+            return
+        }
+
+        viewModelScope.launch {
+            val run = Run(
+                id = null,
+                duration = state.elapsedTime,
+                dateTimeUtc = ZonedDateTime.now()
+                    .withZoneSameInstant(ZoneId.of("UTC")),
+                distanceInMeters = state.runData.distanceMeters,
+                location = state.currentLocation ?: Location(0.0, 0.0),
+                maxSpeedKmh = LocationDataCalculator.getMaxSpeedKmh(locations),
+                totalElevationMeters = LocationDataCalculator.getTotalElevationMeters(locations),
+                mapPictureUrl = null
+            )
+            runningTracker.finishRun()
+            // Save run in repository
+            when(val result = runRepository.upsertRun(run, mapPictureBytes)){
+                is Result.Error -> {
+                    eventChannel.send(ActiveRunEvent.Error(result.error.asUiText()))
+                }
+                is Result.Success -> {
+                    eventChannel.send(ActiveRunEvent.RunSaved)
+                }
+            }
+            state = state.copy(isSavingRun = false)
         }
     }
 
