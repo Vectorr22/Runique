@@ -10,7 +10,6 @@ import com.plcoding.core.domain.location.LocationTimeStamp
 
 @Composable
 fun RuniquePolylines(
-    modifier: Modifier = Modifier,
     locations: List<List<LocationTimeStamp>>
 ) {
 

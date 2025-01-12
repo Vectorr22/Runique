@@ -29,7 +29,7 @@ fun RuniqueFloatingActionButton(
     contentDescription: String? = null
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(75.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primary.copy(0.3f))

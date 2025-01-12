@@ -1,5 +1,7 @@
 package com.plcoding.run.network
 
+import com.amazonaws.services.s3.S3ClientOptions
+import com.amazonaws.services.s3.model.PutObjectRequest
 import com.plcoding.core.data.networking.constructRoute
 import com.plcoding.core.data.networking.delete
 import com.plcoding.core.data.networking.get
