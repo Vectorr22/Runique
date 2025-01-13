@@ -3,6 +3,7 @@ package com.plcoding.core.data.run
 import android.util.Log
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
+import aws.sdk.kotlin.services.s3.listObjectsV2
 import aws.sdk.kotlin.services.s3.putObject
 import aws.smithy.kotlin.runtime.content.ByteStream
 import com.plcoding.core.data.BuildConfig
@@ -34,14 +35,31 @@ class OfflineFirstRunRepository(
         return when (val result = remoteRunDataSource.getRuns()) {
             is Result.Error -> result.asEmptyDataResult()
             is Result.Success -> {
+
+                val listOfImages = getImagesFromBucket(
+                    bucketName = BuildConfig.S3_BUCKET_NAME,
+                    accessKey = BuildConfig.S3_ACCESS_KEY,
+                    secretAccessKey = BuildConfig.S3_SECRET_ACCESS_KEY
+                )
+                val newList: MutableList<Run> = mutableListOf()
+                repeat(result.data.size) {
+                    newList.add(
+                        result.data[it].copy(
+                            mapPictureUrl = listOfImages[it]
+                        )
+                    )
+                }
                 applicationScope.async {
-                    localRunDataSource.upsertRuns(result.data).asEmptyDataResult()
+                    localRunDataSource.upsertRuns(newList).asEmptyDataResult()
                 }.await()
             }
         }
     }
 
-    override suspend fun upsertRun(run: Run, mapPictureByteArray: ByteArray): EmptyResult<DataError> {
+    override suspend fun upsertRun(
+        run: Run,
+        mapPictureByteArray: ByteArray
+    ): EmptyResult<DataError> {
         val localResult = localRunDataSource.upsertRun(run)
         if (localResult !is Result.Success) {
             return localResult.asEmptyDataResult()
@@ -55,7 +73,7 @@ class OfflineFirstRunRepository(
 
         uploadToS3(
             bucketName = BuildConfig.S3_BUCKET_NAME,
-            accessKey =  BuildConfig.S3_ACCESS_KEY,
+            accessKey = BuildConfig.S3_ACCESS_KEY,
             secretAccessKey = BuildConfig.S3_SECRET_ACCESS_KEY,
             runId = runWithId.id!!,
             png = mapPictureByteArray
@@ -104,9 +122,29 @@ class OfflineFirstRunRepository(
                 this.body = ByteStream.fromBytes(png)
                 this.contentType = "image/png"
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
             Timber.tag("Victor").i(e.message.toString())
         }
+    }
+
+    private suspend fun getImagesFromBucket(
+        bucketName: String,
+        accessKey: String,
+        secretAccessKey: String
+    ): List<String?> {
+        val s3Client = S3Client {
+            region = "us-east-2"
+            this.credentialsProvider = StaticCredentialsProvider {
+                this.accessKeyId = accessKey
+                this.secretAccessKey = secretAccessKey
+            }
+        }
+
+        val resp = s3Client.listObjectsV2 {
+            this.bucket = bucketName
+        }
+        return resp.contents?.map { "https://$bucketName.s3.us-east-2.amazonaws.com/${it.key}" }
+            ?: emptyList<String>()
     }
 }

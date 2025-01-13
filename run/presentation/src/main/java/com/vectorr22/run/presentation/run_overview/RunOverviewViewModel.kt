@@ -43,7 +43,23 @@ class RunOverviewViewModel(
                     runRepository.deleteRun(action.runUi.id)
                 }
             }
+            RunOverviewAction.OnScreenAppeared -> {
+                updateImages()
+            }
             else -> Unit
+        }
+    }
+
+    private fun updateImages(){
+        runRepository.getRuns().onEach { runs ->
+            val runsUi = runs.map { it.toRunUi() }
+            state = state.copy(
+                runs = runsUi
+            )
+        }.launchIn(viewModelScope)
+
+        viewModelScope.launch {
+            runRepository.fetchRuns()
         }
     }
 }

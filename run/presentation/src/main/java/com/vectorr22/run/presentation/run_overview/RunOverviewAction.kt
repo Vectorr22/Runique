@@ -10,4 +10,6 @@ sealed interface RunOverviewAction {
     data object onAnalyticsClick: RunOverviewAction
 
     data class DeleteRun(val runUi: RunUi): RunOverviewAction
+
+    data object OnScreenAppeared: RunOverviewAction
 }
