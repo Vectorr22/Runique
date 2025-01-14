@@ -18,7 +18,7 @@ fun Duration.formatted(): String {
 }
 
 fun Double.formattedToKm(): String {
-    return "${this.roundToDecimal(1)} km"
+    return "${this.roundToDecimal(1)} km/h"
 }
 
 fun Double.toFormattedKmh(): String{
