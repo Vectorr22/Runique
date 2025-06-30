@@ -7,6 +7,7 @@ android {
 
     defaultConfig {
         minSdk = 30
+        compileSdk = 35
     }
 }
 
@@ -19,4 +20,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.bundles.koin.compose)
+
+    implementation(projects.core.presentation.designsystemWear)
+    implementation(projects.wear.run.presentation)
 }

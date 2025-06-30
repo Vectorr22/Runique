@@ -1,4 +1,4 @@
-package com.vector.wear.run.presentation
+package com.vector.core.presentation.designsystem_wear
 
 //import androidx.test.platform.app.InstrumentationRegistry
 //import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ package com.vector.wear.run.presentation
 //    fun useAppContext() {
 //        // Context of the app under test.
 //        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-//        assertEquals("com.vector.wear.run.presentation.test", appContext.packageName)
+//        assertEquals("com.vector.core.presentation.designsystem_wear.test", appContext.packageName)
 //    }
 //}

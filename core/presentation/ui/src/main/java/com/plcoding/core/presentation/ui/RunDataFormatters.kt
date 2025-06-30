@@ -42,6 +42,10 @@ fun Duration.toFormattedPace(distanceKm: Double): String{
 
 }
 
+fun Int?.toFormattedHeartRate(): String{
+    return if(this != null) "$this bpm" else "-"
+}
+
 private fun Double.roundToDecimal(decimalCount: Int): Double {
     val factor = 10f.pow(decimalCount)
     return round(this * factor) / factor
