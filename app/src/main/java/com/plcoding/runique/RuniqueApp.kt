@@ -9,6 +9,7 @@ import com.plcoding.core.data.di.coreDataModule
 import com.plcoding.core.database.di.databaseModule
 import com.plcoding.run.network.di.netWorkModule
 import com.plcoding.runique.di.appModule
+import com.vector.core.connectivity.data.di.coreConnectivityDataModule
 import com.vector.run.data.di.runDataModule
 import com.vectorr22.run.di.runPresentationModule
 import com.vectorr22.run.location.di.locationModule
@@ -42,7 +43,8 @@ class RuniqueApp: Application() {
                 locationModule,
                 databaseModule,
                 netWorkModule,
-                runDataModule
+                runDataModule,
+                coreConnectivityDataModule
             )
         }
     }

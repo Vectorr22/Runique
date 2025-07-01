@@ -1,10 +1,12 @@
 package com.vector.run.data.di
 
 import com.plcoding.core.domain.run.SyncRunScheduler
+import com.plcoding.run.domain.WatchConnector
 import com.vector.run.data.CreateRunWorker
 import com.vector.run.data.DeleteRunWorker
 import com.vector.run.data.FetchRunsWorker
 import com.vector.run.data.SyncRunWorkerScheduler
+import com.vector.run.data.connectivity.PhoneToWatchConnector
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
@@ -15,4 +17,5 @@ val runDataModule = module {
     workerOf(::FetchRunsWorker)
     workerOf(::DeleteRunWorker)
     singleOf(::SyncRunWorkerScheduler).bind<SyncRunScheduler>()
+    singleOf(::PhoneToWatchConnector).bind<WatchConnector>()
 }

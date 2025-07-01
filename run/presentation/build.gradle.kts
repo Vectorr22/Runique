@@ -18,5 +18,6 @@ dependencies {
 //    implementation ("com.amazonaws:aws-android-sdk-core:2.78.0")
     implementation(projects.core.domain)
     implementation(projects.run.domain)
+    implementation(projects.core.connectivity.domain)
 
 }
