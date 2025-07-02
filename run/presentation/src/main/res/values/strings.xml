@@ -28,4 +28,7 @@
     <string name="stop_run">Stop run</string>
     <string name="track_your_run">Track your run</string>
     <string name="image_url">Image Url</string>
+    <string name="heart_rate">Heart rate</string>
+    <string name="avg_heart_rate">Ø Heart rate</string>
+    <string name="max_heart_rate">Max Heart rate</string>
 </resources>

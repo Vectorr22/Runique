@@ -3,6 +3,7 @@ package com.vectorr22.run.presentation.run_overview.mappers
 import com.plcoding.core.domain.run.Run
 import com.plcoding.core.presentation.ui.formatted
 import com.plcoding.core.presentation.ui.formattedToKm
+import com.plcoding.core.presentation.ui.toFormattedHeartRate
 import com.plcoding.core.presentation.ui.toFormattedKmh
 import com.plcoding.core.presentation.ui.toFormattedMeters
 import com.plcoding.core.presentation.ui.toFormattedPace
@@ -29,6 +30,8 @@ fun Run.toRunUi(): RunUi{
         maxSpeed = maxSpeedKmh.toFormattedKmh(),
         pace = duration.toFormattedPace(distanceInKm),
         totalElevation = totalElevationMeters.toFormattedMeters(),
-        mapPictureUrl = mapPictureUrl
+        mapPictureUrl = mapPictureUrl,
+        avgHeartRate = avgHeartRate.toFormattedHeartRate(),
+        maxHeartRate = maxHeartRate.toFormattedHeartRate()
     )
 }

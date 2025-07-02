@@ -8,4 +8,5 @@ val appModule = module {
     single{
         (androidApplication() as RuniqueApp).applicationScope
     }
+
 }

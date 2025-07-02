@@ -1,8 +1,6 @@
 package com.plcoding.runique
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -14,7 +12,7 @@ import com.plcoding.auth.presentation.intro.IntroScreenRoot
 import com.plcoding.auth.presentation.login.LoginScreenRoot
 import com.plcoding.auth.presentation.register.RegisterScreenRoot
 import com.vectorr22.run.presentation.active_run.ActiveRunScreenRoot
-import com.vectorr22.run.presentation.active_run.services.ActiveRunService
+import com.vector.core.notification.ActiveRunService
 import com.vectorr22.run.presentation.run_overview.RunOverviewScreenRoot
 
 @Composable

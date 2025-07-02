@@ -3,6 +3,7 @@ package com.vector.wear.run.presentation
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -19,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,29 +29,57 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material3.FilledTonalIconButton
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButtonDefaults
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.OutlinedIconButton
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
-import androidx.wear.compose.ui.tooling.preview.WearPreviewSquare
 import com.plcoding.core.presentation.designsystem.ExclamationMarkIcon
 import com.plcoding.core.presentation.designsystem.FinishIcon
 import com.plcoding.core.presentation.designsystem.PauseIcon
 import com.plcoding.core.presentation.designsystem.RuniqueWhite
 import com.plcoding.core.presentation.designsystem.StartIcon
+import com.plcoding.core.presentation.ui.ObserveAsEvents
 import com.plcoding.core.presentation.ui.formatted
 import com.plcoding.core.presentation.ui.toFormattedHeartRate
 import com.plcoding.core.presentation.ui.toFormattedKmh
+import com.vector.core.notification.ActiveRunService
 import com.vector.core.presentation.designsystem_wear.RuniqueTheme
 import com.vector.wear.run.presentation.components.RunDataCard
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun TrackerScreenRoot(
-    viewModel: TrackerViewModel = koinViewModel()
+    onServiceToggle: (isServiceBoolean: Boolean) -> Unit,
+    viewModel: TrackerViewModel = koinViewModel(),
 ) {
+    val context = LocalContext.current
+    val state = viewModel.state
+    val isServiceActive by ActiveRunService.isServiceActive.collectAsStateWithLifecycle()
+    LaunchedEffect(state.isRunActive, state.hasStartedRunning, isServiceActive) {
+        if(state.isRunActive && !isServiceActive) {
+            onServiceToggle(true)
+        }
+
+
+    }
+    ObserveAsEvents(flow = viewModel.events) { event ->
+        when(event) {
+            is TrackerEvent.Error -> {
+                Toast.makeText(
+                    context,
+                    event.message.asString(context),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            TrackerEvent.RunFinished -> {
+                onServiceToggle(false)
+            }
+        }
+
+    }
     TrackerScreen(
         state = viewModel.state,
         onAction = viewModel::onAction

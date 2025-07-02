@@ -8,4 +8,5 @@
     <string name="error_server_error">Oops, something went wrong, please try again.</string>
     <string name="error_serialization">Oops, couldn\'t parse data.</string>
     <string name="error_unknown">An unknown error occurred.</string>
+    <string name="active_run">Active Run</string>
 </resources>

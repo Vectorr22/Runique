@@ -6,6 +6,7 @@ import com.plcoding.core.domain.run.Run
 import org.bson.types.ObjectId
 import java.time.Instant
 import java.time.ZoneId
+import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -21,7 +22,10 @@ fun RunEntity.toRun(): Run{
         ),
         maxSpeedKmh = maxSpeedKmh,
         totalElevationMeters = totalElevationMeters,
-        mapPictureUrl = mapPictureUrl
+        mapPictureUrl = mapPictureUrl,
+        avgHeartRate = avgHeartRate,
+        maxHeartRate = maxHeartRate
+
     )
 }
 
@@ -36,6 +40,8 @@ fun Run.toRunEntity(): RunEntity{
         distanceMeters = distanceInMeters,
         avgSpeedKmh = avgSpeedInKmh,
         totalElevationMeters = totalElevationMeters,
-        mapPictureUrl = mapPictureUrl
+        mapPictureUrl = mapPictureUrl,
+        maxHeartRate = maxHeartRate,
+        avgHeartRate = avgHeartRate
     )
 }
