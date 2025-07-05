@@ -47,6 +47,8 @@ import com.plcoding.core.presentation.ui.toFormattedHeartRate
 import com.plcoding.core.presentation.ui.toFormattedKmh
 import com.vector.core.notification.ActiveRunService
 import com.vector.core.presentation.designsystem_wear.RuniqueTheme
+import com.vector.wear.run.presentation.ambient.AmbientObserver
+import com.vector.wear.run.presentation.ambient.ambientMode
 import com.vector.wear.run.presentation.components.RunDataCard
 import org.koin.androidx.compose.koinViewModel
 
@@ -59,14 +61,14 @@ fun TrackerScreenRoot(
     val state = viewModel.state
     val isServiceActive by ActiveRunService.isServiceActive.collectAsStateWithLifecycle()
     LaunchedEffect(state.isRunActive, state.hasStartedRunning, isServiceActive) {
-        if(state.isRunActive && !isServiceActive) {
+        if (state.isRunActive && !isServiceActive) {
             onServiceToggle(true)
         }
 
 
     }
     ObserveAsEvents(flow = viewModel.events) { event ->
-        when(event) {
+        when (event) {
             is TrackerEvent.Error -> {
                 Toast.makeText(
                     context,
@@ -74,6 +76,7 @@ fun TrackerScreenRoot(
                     Toast.LENGTH_LONG
                 ).show()
             }
+
             TrackerEvent.RunFinished -> {
                 onServiceToggle(false)
             }
@@ -107,7 +110,7 @@ private fun TrackerScreen(
             Manifest.permission.BODY_SENSORS
         ) == PackageManager.PERMISSION_GRANTED
 
-        val hasNotificationPermission = if(Build.VERSION.SDK_INT >= 33) {
+        val hasNotificationPermission = if (Build.VERSION.SDK_INT >= 33) {
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.POST_NOTIFICATIONS
@@ -117,26 +120,31 @@ private fun TrackerScreen(
         }
 
         val permissions = mutableListOf<String>()
-        if(!hasBodySensorPermission){
+        if (!hasBodySensorPermission) {
             permissions.add(Manifest.permission.BODY_SENSORS)
         }
-        if(!hasNotificationPermission && Build.VERSION.SDK_INT >= 33){
+        if (!hasNotificationPermission && Build.VERSION.SDK_INT >= 33) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
         permissionLauncher.launch(permissions.toTypedArray())
-
-
-
-
     }
+    AmbientObserver(
+        onEnterAmbientMode = {
+            onAction(TrackerAction.OnEnterAmbientMode(it.burnInProtectionRequired))
+        },
+        onExitAmbientMode = {
+            onAction(TrackerAction.OnExitAmbientMode)
+        }
+    )
 
 
     if (state.isConnectedPhoneNearby) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+                .background(MaterialTheme.colorScheme.background)
+                .ambientMode(state.isAmbientMode, state.burnInProtectionRequires),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
