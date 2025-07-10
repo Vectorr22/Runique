@@ -20,12 +20,13 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import timber.log.Timber
 import com.plcoding.core.domain.util.Result
+import io.ktor.client.engine.HttpClientEngine
 
 class HttpClientFactory(
     private val sessionStorage: SessionStorage
 ) {
-    fun build(): HttpClient{
-        return HttpClient(CIO){
+    fun build(engine: HttpClientEngine): HttpClient{
+        return HttpClient(engine){
             install(ContentNegotiation){
                 json(
                     json = Json {
