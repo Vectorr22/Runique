@@ -8,15 +8,15 @@ By the guidance of Philipp Lackner [Android Essentials Bundle course](https://pl
  
 
 ### Technologies used:
-- Multi-module architecture
+- Multi-module architecture with MVVM
 - Gradle convention plugins & version catalogs
-- Authentication system
+- Authentication system with SharedPreferences
 - Google Maps SDK
 - Jetpack compose for UI
-- Retrofit
+- Retrofit 
 - Room
 - Koin
-- Wear OS (soon)
+- Wear OS integration
 
 ### Images
 
